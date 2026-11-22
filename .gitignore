@@ -1,0 +1,20 @@
+# Python / environment
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Generated data and caches (rebuilt automatically)
+data/
+*.pt
+
+# Model weights (680 MB, download from Hugging Face; see README)
+mdlm-local/model.safetensors
+
+# Backups
+*.bak
+
+# Hugging Face download cache
+mdlm-local/.cache/

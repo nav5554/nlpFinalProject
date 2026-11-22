@@ -1,0 +1,8 @@
+torch
+transformers
+datasets
+einops
+omegaconf
+huggingface_hub
+scikit-learn
+pandas
