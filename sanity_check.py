@@ -24,9 +24,9 @@ from transformers import AutoModelForMaskedLM, AutoTokenizer
 MODEL_NAME = "./mdlm-local"   # your locally patched copy (Mac-compatible)
 MASK_ID = 50257          # GPT-2 vocab is 50257 tokens; MDLM adds [MASK] as id 50257
 WINDOW = 256             # tokens of context per example (model was trained on 1024)
-N_EXAMPLES = 300
+N_EXAMPLES = 40
 MASK_RATIO = 0.5
-STEPS = 128             # decoding steps for iterative confidence decoding
+STEPS = 32           # decoding steps for iterative confidence decoding
 SEED = 0
 
 random.seed(SEED)
@@ -43,17 +43,25 @@ model = model.to(device).eval()
 print(f"params: {sum(p.numel() for p in model.parameters()) / 1e6:.0f}M")
 
 
+CHUNK = 32               # windows per forward pass (keeps memory bounded)
+
+
 @torch.no_grad()
 def predict(x):
-    """One forward pass -> (confidence, argmax) per position. x: [B, L] token ids."""
-    t = torch.zeros(x.shape[0], device=x.device)       # time conditioning is off; pass zeros
-    logits = model(input_ids=x, timesteps=t)
-    logits = logits.logits if hasattr(logits, "logits") else logits
-    logits = logits.float()
-    logits[..., MASK_ID] = -float("inf")               # never predict [MASK] itself
-    probs = logits.softmax(-1)
-    conf, guess = probs.max(-1)
-    return conf, guess
+    """Forward pass -> (confidence, argmax) per position. x: [B, L] token ids.
+    Runs in chunks of CHUNK windows so large batches don't run out of memory."""
+    confs, guesses = [], []
+    for i in range(0, x.shape[0], CHUNK):
+        xb = x[i:i + CHUNK]
+        t = torch.zeros(xb.shape[0], device=xb.device)  # time conditioning is off; pass zeros
+        logits = model(input_ids=xb, timesteps=t)
+        logits = logits.logits if hasattr(logits, "logits") else logits
+        logits = logits.float()
+        logits[..., MASK_ID] = -float("inf")            # never predict [MASK] itself
+        conf, guess = logits.softmax(-1).max(-1)
+        confs.append(conf)
+        guesses.append(guess)
+    return torch.cat(confs), torch.cat(guesses)
 
 
 # ---------------------------------------------------------------- data
@@ -93,25 +101,41 @@ print(f"masked tokens: {mask.sum().item()} across {N_EXAMPLES} windows of {WINDO
 _, guess = predict(x_masked)
 one_shot_acc = (guess[mask] == targets[mask]).float().mean().item()
 
-# ---------------------------------------------------------------- iterative confidence
-x = x_masked.clone()
-for step in range(STEPS):
-    still = x == MASK_ID
-    if not still.any():
-        break
-    conf, guess = predict(x)
-    conf = conf.masked_fill(~still, -1.0)              # only consider masked positions
-    for b in range(x.shape[0]):
-        n_left = still[b].sum().item()
-        if n_left == 0:
-            continue
-        k = -(-n_left // (STEPS - step))               # ceil: spread remaining evenly over steps
-        top = conf[b].topk(k).indices
-        x[b, top] = guess[b, top]
+# ---------------------------------------------------------------- iterative decoding
+def decode(x_masked, policy):
+    """Fill all masks over STEPS steps, committing k tokens per step.
+    policy = "confidence": commit the k most confident guesses (the standard baseline)
+    policy = "oracle":     commit correct guesses first (uses the answer key -> upper bound)"""
+    x = x_masked.clone()
+    for step in range(STEPS):
+        still = x == MASK_ID
+        if not still.any():
+            break
+        conf, guess = predict(x)
+        score = conf.clone()
+        if policy == "oracle":
+            correct = (guess == targets) & still
+            score = score + 10.0 * correct.float()    # any correct guess outranks every wrong one
+        score = score.masked_fill(~still, -1.0)       # only consider masked positions
+        for b in range(x.shape[0]):
+            n_left = still[b].sum().item()
+            if n_left == 0:
+                continue
+            k = -(-n_left // (STEPS - step))           # ceil: spread remaining evenly over steps
+            top = score[b].topk(k).indices
+            x[b, top] = guess[b, top]
+    return x
+
+
+x = decode(x_masked, "confidence")
 iter_acc = (x[mask] == targets[mask]).float().mean().item()
+
+x_oracle = decode(x_masked, "oracle")
+oracle_acc = (x_oracle[mask] == targets[mask]).float().mean().item()
 
 print(f"\none-shot accuracy:                 {one_shot_acc:.3f}")
 print(f"confidence decoding ({STEPS} steps):  {iter_acc:.3f}")
+print(f"oracle decoding ({STEPS} steps):      {oracle_acc:.3f}   <- upper bound for any commit policy")
 
 # ---------------------------------------------------------------- eyeball a few examples
 N_SHOW = 30           # how many examples to print
@@ -121,7 +145,9 @@ for b in range(min(N_SHOW, x.shape[0])):
     print("--- masked ---")
     print(" ".join("[M]" if mm else tok.decode([t]).strip()
                    for t, mm in zip(targets[b, show].tolist(), mask[b, show].tolist())))
-    print("\n--- filled (iterative) ---")
+    print("\n--- filled (confidence) ---")
     print(tok.decode(x[b, show].tolist()))
+    print("\n--- filled (oracle) ---")
+    print(tok.decode(x_oracle[b, show].tolist()))
     print("\n--- original ---")
     print(tok.decode(targets[b, show].tolist()))
