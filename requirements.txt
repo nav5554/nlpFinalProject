@@ -6,3 +6,4 @@ omegaconf
 huggingface_hub
 scikit-learn
 pandas
+pyarrow
