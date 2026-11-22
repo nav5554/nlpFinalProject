@@ -153,10 +153,24 @@ _, guess = predict(x_masked)
 one_shot_acc = (guess[mask] == targets[mask]).float().mean().item()
 
 # ---------------------------------------------------------------- iterative decoding
+def dist_to_known(still):
+    """For each position, distance to the nearest NON-masked token (original text or already committed).
+    still: [B, L] bool, True where still masked. Returns [B, L] long. Vectorized over the batch."""
+    B, L = still.shape
+    pos = torch.arange(L, device=still.device).expand(B, L)
+    known = ~still
+    big = 10 ** 6
+    left = torch.where(known, pos, torch.full_like(pos, -big)).cummax(dim=1).values          # nearest known on the left
+    right = torch.where(known, pos, torch.full_like(pos, big)).flip(1).cummin(dim=1).values.flip(1)  # nearest known on the right
+    return torch.minimum(pos - left, right - pos)
+
+
 def decode(x_masked, policy):
     """Fill all masks over STEPS steps, committing k tokens per step.
     policy = "confidence": commit the k most confident guesses (the standard baseline)
-    policy = "oracle":     commit correct guesses first (uses the answer key -> upper bound)"""
+    policy = "oracle":     commit correct guesses first (uses the answer key -> upper bound)
+    policy = "edges":      commit blanks closest to known text first (spans fill from the edges inward),
+                           confidence breaks ties  (hand-written heuristic baseline)"""
     x = x_masked.clone()
     for step in range(STEPS):
         still = x == MASK_ID
@@ -167,7 +181,10 @@ def decode(x_masked, policy):
         if policy == "oracle":
             correct = (guess == targets) & still
             score = score + 10.0 * correct.float()    # any correct guess outranks every wrong one
-        score = score.masked_fill(~still, -1.0)       # only consider masked positions
+        elif policy == "edges":
+            d = dist_to_known(still).float()
+            score = -10.0 * d + conf                  # nearest-to-known first; conf (0..1) only breaks ties
+        score = score.masked_fill(~still, -1e9)       # only consider masked positions (very low so any masked score wins)
         for b in range(x.shape[0]):
             n_left = still[b].sum().item()
             if n_left == 0:
@@ -184,8 +201,12 @@ iter_acc = (x[mask] == targets[mask]).float().mean().item()
 x_oracle = decode(x_masked, "oracle")
 oracle_acc = (x_oracle[mask] == targets[mask]).float().mean().item()
 
+x_edges = decode(x_masked, "edges")
+edges_acc = (x_edges[mask] == targets[mask]).float().mean().item()
+
 print(f"\none-shot accuracy:                 {one_shot_acc:.3f}")
 print(f"confidence decoding ({STEPS} steps):  {iter_acc:.3f}")
+print(f"edges-first decoding ({STEPS} steps): {edges_acc:.3f}   <- heuristic: fill spans from the edges inward")
 print(f"oracle decoding ({STEPS} steps):      {oracle_acc:.3f}   <- upper bound for any commit policy")
 
 # ---------------------------------------------------------------- eyeball a few examples
@@ -198,6 +219,8 @@ for b in range(min(N_SHOW, x.shape[0])):
                    for t, mm in zip(targets[b, show].tolist(), mask[b, show].tolist())))
     print("\n--- filled (confidence) ---")
     print(tok.decode(x[b, show].tolist()))
+    print("\n--- filled (edges-first) ---")
+    print(tok.decode(x_edges[b, show].tolist()))
     print("\n--- filled (oracle) ---")
     print(tok.decode(x_oracle[b, show].tolist()))
     print("\n--- original ---")
