@@ -24,6 +24,8 @@ import torch
 from datasets import load_dataset
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
+from features import FEATURES, StepTracker, compute_features, predict_full
+
 # ---------------------------------------------------------------- settings
 MODEL_NAME = "./mdlm-local"
 MASK_ID = 50257
@@ -50,27 +52,9 @@ model = AutoModelForMaskedLM.from_pretrained(MODEL_NAME, trust_remote_code=True)
 
 
 # ---------------------------------------------------------------- model
-@torch.no_grad()
 def predict(x):
-    """Forward pass in chunks. Returns per-position (conf, guess, margin, entropy), each [B, L].
-    conf = top-1 prob, margin = top-1 minus top-2 prob, entropy of the predictive distribution."""
-    confs, guesses, margins, ents = [], [], [], []
-    for i in range(0, x.shape[0], CHUNK):
-        xb = x[i:i + CHUNK]
-        t = torch.zeros(xb.shape[0], device=xb.device)   # time conditioning is off
-        out = model(input_ids=xb, timesteps=t)
-        logits = (out.logits if hasattr(out, "logits") else out).float()
-        logits[..., MASK_ID] = -float("inf")             # never predict [MASK]
-        logp = logits.log_softmax(-1)
-        del logits
-        top2 = logp.topk(2, dim=-1)
-        p2 = top2.values.exp()
-        confs.append(p2[..., 0])
-        margins.append(p2[..., 0] - p2[..., 1])
-        guesses.append(top2.indices[..., 0])
-        ents.append(-(logp.exp() * logp.clamp(min=-1e4)).sum(-1))   # clamp avoids 0 * -inf
-        del logp
-    return torch.cat(confs), torch.cat(guesses), torch.cat(margins), torch.cat(ents)
+    """(conf, guess, margin, entropy) per position; see features.predict_full."""
+    return predict_full(model, x, MASK_ID, CHUNK)
 
 
 # ---------------------------------------------------------------- data
@@ -126,46 +110,18 @@ def span_mask(n, length):
     return m
 
 
-# ---------------------------------------------------------------- features
-def span_features(still):
-    """still: [B, L] True where masked. Returns dist to nearest known token, length of the
-    masked run containing each position, and whether the left/right neighbor is masked."""
-    B, L = still.shape
-    pos = torch.arange(L, device=still.device).expand(B, L)
-    known = ~still
-    big = 10 ** 6
-    left = torch.where(known, pos, torch.full_like(pos, -big)).cummax(dim=1).values
-    right = torch.where(known, pos, torch.full_like(pos, big)).flip(1).cummin(dim=1).values.flip(1)
-    dist = torch.minimum(pos - left, right - pos)
-    run_len = right - left - 1
-    left_masked = torch.zeros_like(still)
-    left_masked[:, 1:] = still[:, :-1]
-    right_masked = torch.zeros_like(still)
-    right_masked[:, :-1] = still[:, 1:]
-    return dist, run_len, left_masked, right_masked
-
-
-def conf_rank(conf, still):
-    """Within each window, rank of each masked position's confidence among masked positions,
-    scaled to [0, 1] (1 = most confident)."""
-    B, L = conf.shape
-    order = conf.masked_fill(~still, -1.0).argsort(dim=1)       # unmasked sort to the bottom
-    ranks = torch.empty_like(order)
-    ranks.scatter_(1, order, torch.arange(L, device=conf.device).expand(B, L))
-    n_masked = still.sum(1, keepdim=True)
-    r = (ranks - (L - n_masked)).float()
-    return r / (n_masked - 1).clamp(min=1).float()
-
-
 # ---------------------------------------------------------------- decode + log
+INT_COLS = {"flipped", "first_step", "left_masked", "right_masked"}          # stored as int8
+SHORT_COLS = {"steps_stable", "dist_known", "run_len"}                       # stored as int16
+
+
 def decode_and_log(targets, mask, policy, split, window_idx):
     """Decode with `policy`, logging one row per still-masked position per step."""
     x = targets.clone()
     x[mask] = MASK_ID
     B, L = x.shape
     n_maskable = L - 2 * MARGIN
-    prev_guess = prev_conf = None
-    stable = torch.zeros(B, L, dtype=torch.long, device=x.device)
+    tracker = StepTracker()
     win = torch.tensor(window_idx, device=x.device)
     frames = []
 
@@ -174,67 +130,23 @@ def decode_and_log(targets, mask, policy, split, window_idx):
         if not still.any():
             break
         conf, guess, margin, ent = predict(x)
+        flipped, dconf, first, stable = tracker.update(guess, conf)
+        feats = compute_features(conf, margin, ent, still, flipped, dconf, first, stable,
+                                 step, STEPS, n_maskable)
 
-        # stability across steps
-        if prev_guess is None:
-            flipped = torch.zeros_like(still)
-            dconf = torch.zeros_like(conf)
-            first = torch.ones_like(still)
-        else:
-            flipped = guess != prev_guess
-            dconf = conf - prev_conf
-            first = torch.zeros_like(still)
-            stable = torch.where(flipped, torch.zeros_like(stable), stable + 1)
-
-        # span structure + neighbors
-        dist, run_len, lm, rm = span_features(still)
-        lconf = torch.ones_like(conf)
-        lconf[:, 1:] = torch.where(still[:, :-1], conf[:, :-1], torch.ones_like(conf[:, :-1]))
-        rconf = torch.ones_like(conf)
-        rconf[:, :-1] = torch.where(still[:, 1:], conf[:, 1:], torch.ones_like(conf[:, 1:]))
-
-        # relative-to-this-step
-        n_masked = still.sum(1, keepdim=True)
-        conf_mean = (conf * still).sum(1, keepdim=True) / n_masked.clamp(min=1)
-        rank = conf_rank(conf, still)
-        frac = (n_masked.float() / n_maskable).expand(B, L)
-
-        label = guess == targets
         b_idx, p_idx = still.nonzero(as_tuple=True)
-
-        def g(t, dtype=np.float32):
-            return t[still].detach().cpu().numpy().astype(dtype)
-
-        frames.append(pd.DataFrame({
+        cols = {
             "split": split,
             "policy": policy,
             "window": win[b_idx].cpu().numpy().astype(np.int32),
             "step": np.full(len(b_idx), step, dtype=np.int16),
             "pos": p_idx.cpu().numpy().astype(np.int16),
-            # confidence-type
-            "conf": g(conf),
-            "margin": g(margin),
-            "entropy": g(ent),
-            # stability
-            "flipped": g(flipped, np.int8),
-            "steps_stable": g(stable, np.int16),
-            "dconf": g(dconf),
-            "first_step": g(first, np.int8),
-            # span structure
-            "dist_known": g(dist, np.int16),
-            "run_len": g(run_len, np.int16),
-            "left_masked": g(lm, np.int8),
-            "right_masked": g(rm, np.int8),
-            "left_conf": g(lconf),
-            "right_conf": g(rconf),
-            # relative to this step
-            "conf_rank": g(rank),
-            "conf_minus_mean": g(conf - conf_mean),
-            "frac_masked": g(frac),
-            "step_frac": np.full(len(b_idx), step / STEPS, dtype=np.float32),
-            # label
-            "label": g(label, np.int8),
-        }))
+        }
+        for f in FEATURES:
+            dtype = np.int8 if f in INT_COLS else np.int16 if f in SHORT_COLS else np.float32
+            cols[f] = feats[f][still].detach().cpu().numpy().astype(dtype)
+        cols["label"] = (guess == targets)[still].cpu().numpy().astype(np.int8)
+        frames.append(pd.DataFrame(cols))
 
         # commit k tokens per window according to the rollout policy
         if policy == "confidence":
@@ -252,8 +164,6 @@ def decode_and_log(targets, mask, policy, split, window_idx):
             k = -(-nl // (STEPS - step))
             top = score[b].topk(k).indices
             x[b, top] = guess[b, top]
-
-        prev_guess, prev_conf = guess, conf
 
     acc = (x[mask] == targets[mask]).float().mean().item()
     return pd.concat(frames, ignore_index=True), acc

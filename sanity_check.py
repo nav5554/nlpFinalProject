@@ -3,10 +3,12 @@ Sanity check for MDLM-OWT on WikiText-2.
 
 1. Loads the frozen MDLM model from ./mdlm-local (patched to run on Mac).
 2. Takes windows of WikiText-2 test text, randomly masks 15% of tokens.
-3. Fills them two ways:
+3. Fills them several ways on the SAME masks:
      - one-shot: every mask filled from a single forward pass
-     - iterative confidence decoding: commit the most confident guesses over K steps
-4. Prints accuracy and one example so you can eyeball the fills.
+     - iterative decoding over STEPS steps with different commit policies:
+       confidence, edges-first (heuristic), oracle (upper bound), and the learned
+       policies lr / mlp if policies/lr.pt / policies/mlp.pt exist (train_policies.py)
+4. Prints accuracy and examples so you can eyeball the fills.
 
 Run:  python sanity_check.py
 """
@@ -21,6 +23,8 @@ import torch
 from datasets import load_dataset
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
+from features import StepTracker, compute_features, load_scorer, predict_full, stack_features
+
 MODEL_NAME = "./mdlm-local"   # your locally patched copy (Mac-compatible)
 MASK_ID = 50257          # GPT-2 vocab is 50257 tokens; MDLM adds [MASK] as id 50257
 WINDOW = 256             # tokens of context per example (model was trained on 1024)
@@ -29,7 +33,7 @@ MASK_RATIO = 0.5
 MASKING = "span"         # "span" = contiguous masked runs, "random" = independent per-token coin flips
 MEAN_SPAN = 5            # average span length in tokens (span masking only)
 MARGIN = 16              # first/last MARGIN tokens of each window are never masked (context on both sides)
-STEPS = 128             # decoding steps for iterative confidence decoding
+STEPS = 32              # decoding steps (learned policies were trained on 32-step rollouts)
 SEED = 0
 
 random.seed(SEED)
@@ -49,22 +53,18 @@ print(f"params: {sum(p.numel() for p in model.parameters()) / 1e6:.0f}M")
 CHUNK = 32               # windows per forward pass (keeps memory bounded)
 
 
-@torch.no_grad()
 def predict(x):
-    """Forward pass -> (confidence, argmax) per position. x: [B, L] token ids.
-    Runs in chunks of CHUNK windows so large batches don't run out of memory."""
-    confs, guesses = [], []
-    for i in range(0, x.shape[0], CHUNK):
-        xb = x[i:i + CHUNK]
-        t = torch.zeros(xb.shape[0], device=xb.device)  # time conditioning is off; pass zeros
-        logits = model(input_ids=xb, timesteps=t)
-        logits = logits.logits if hasattr(logits, "logits") else logits
-        logits = logits.float()
-        logits[..., MASK_ID] = -float("inf")            # never predict [MASK] itself
-        conf, guess = logits.softmax(-1).max(-1)
-        confs.append(conf)
-        guesses.append(guess)
-    return torch.cat(confs), torch.cat(guesses)
+    """(conf, guess, margin, entropy) per position, in chunks of CHUNK windows; see features.py."""
+    return predict_full(model, x, MASK_ID, CHUNK)
+
+
+# learned commit policies (trained by train_policies.py); skipped if not trained yet
+SCORERS = {}
+for name in ["lr", "mlp"]:
+    path = f"policies/{name}.pt"
+    if os.path.exists(path):
+        SCORERS[name] = load_scorer(path, device)
+print(f"learned policies loaded: {list(SCORERS) or 'none (run train_policies.py)'}")
 
 
 # ---------------------------------------------------------------- data
@@ -149,7 +149,7 @@ x_masked[mask] = MASK_ID
 print(f"masked tokens: {mask.sum().item()} across {N_EXAMPLES} windows of {WINDOW}")
 
 # ---------------------------------------------------------------- one-shot
-_, guess = predict(x_masked)
+_, guess, _, _ = predict(x_masked)
 one_shot_acc = (guess[mask] == targets[mask]).float().mean().item()
 
 # ---------------------------------------------------------------- iterative decoding
@@ -170,13 +170,17 @@ def decode(x_masked, policy):
     policy = "confidence": commit the k most confident guesses (the standard baseline)
     policy = "oracle":     commit correct guesses first (uses the answer key -> upper bound)
     policy = "edges":      commit blanks closest to known text first (spans fill from the edges inward),
-                           confidence breaks ties  (hand-written heuristic baseline)"""
+                           confidence breaks ties  (hand-written heuristic baseline)
+    policy = "lr" / "mlp": commit the guesses the learned policy scores as most likely correct"""
     x = x_masked.clone()
+    tracker = StepTracker()
+    n_maskable = x.shape[1] - 2 * MARGIN
     for step in range(STEPS):
         still = x == MASK_ID
         if not still.any():
             break
-        conf, guess = predict(x)
+        conf, guess, margin, ent = predict(x)
+        flipped, dconf, first, stable = tracker.update(guess, conf)
         score = conf.clone()
         if policy == "oracle":
             correct = (guess == targets) & still
@@ -184,6 +188,11 @@ def decode(x_masked, policy):
         elif policy == "edges":
             d = dist_to_known(still).float()
             score = -10.0 * d + conf                  # nearest-to-known first; conf (0..1) only breaks ties
+        elif policy in SCORERS:
+            feats = compute_features(conf, margin, ent, still, flipped, dconf, first, stable,
+                                     step, STEPS, n_maskable)
+            score = torch.full_like(conf, -1e9)
+            score[still] = SCORERS[policy](stack_features(feats, still)).float()
         score = score.masked_fill(~still, -1e9)       # only consider masked positions (very low so any masked score wins)
         for b in range(x.shape[0]):
             n_left = still[b].sum().item()
@@ -204,9 +213,16 @@ oracle_acc = (x_oracle[mask] == targets[mask]).float().mean().item()
 x_edges = decode(x_masked, "edges")
 edges_acc = (x_edges[mask] == targets[mask]).float().mean().item()
 
+x_learned, learned_acc = {}, {}
+for name in SCORERS:
+    x_learned[name] = decode(x_masked, name)
+    learned_acc[name] = (x_learned[name][mask] == targets[mask]).float().mean().item()
+
 print(f"\none-shot accuracy:                 {one_shot_acc:.3f}")
 print(f"confidence decoding ({STEPS} steps):  {iter_acc:.3f}")
 print(f"edges-first decoding ({STEPS} steps): {edges_acc:.3f}   <- heuristic: fill spans from the edges inward")
+for name, acc in learned_acc.items():
+    print(f"{name + ' decoding':<20} ({STEPS} steps): {acc:.3f}   <- learned policy")
 print(f"oracle decoding ({STEPS} steps):      {oracle_acc:.3f}   <- upper bound for any commit policy")
 
 # ---------------------------------------------------------------- eyeball a few examples
@@ -221,6 +237,9 @@ for b in range(min(N_SHOW, x.shape[0])):
     print(tok.decode(x[b, show].tolist()))
     print("\n--- filled (edges-first) ---")
     print(tok.decode(x_edges[b, show].tolist()))
+    for name, xl in x_learned.items():
+        print(f"\n--- filled ({name}) ---")
+        print(tok.decode(xl[b, show].tolist()))
     print("\n--- filled (oracle) ---")
     print(tok.decode(x_oracle[b, show].tolist()))
     print("\n--- original ---")
