@@ -24,7 +24,7 @@ from transformers import AutoModelForMaskedLM, AutoTokenizer
 MODEL_NAME = "./mdlm-local"   # your locally patched copy (Mac-compatible)
 MASK_ID = 50257          # GPT-2 vocab is 50257 tokens; MDLM adds [MASK] as id 50257
 WINDOW = 256             # tokens of context per example (model was trained on 1024)
-N_EXAMPLES = 40
+N_EXAMPLES = 300
 MASK_RATIO = 0.5
 MASKING = "span"         # "span" = contiguous masked runs, "random" = independent per-token coin flips
 MEAN_SPAN = 5            # average span length in tokens (span masking only)
