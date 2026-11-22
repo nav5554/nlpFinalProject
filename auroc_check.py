@@ -88,5 +88,36 @@ coefs = clf_all.named_steps["logisticregression"].coef_[0]
 for c, w in sorted(zip(cols_all, coefs), key=lambda t: -abs(t[1])):
     print(f"  {c:<18} {w:+.3f}")
 
+# ---------------------------------------------------------------- 5. within-step AUROC
+# Commit decisions only compare blanks in the SAME window at the SAME step. Pooled AUROC also
+# compares rows across steps/windows, so features that are constant within a step
+# (frac_masked, step_frac) can raise it without changing which tokens get picked.
+# Within-step AUROC = AUROC computed separately per (policy, window, step), then averaged.
+def within_step_auroc(df, scores):
+    df = df.assign(_score=scores)
+    aucs = [roc_auc_score(g["label"], g["_score"])
+            for _, g in df.groupby(["policy", "window", "step"])
+            if g["label"].nunique() == 2]
+    return sum(aucs) / len(aucs), len(aucs)
+
+
+print("\n=== WITHIN-STEP AUROC on validation (what top-k commitment actually depends on) ===")
+base, n_groups = within_step_auroc(val, val["conf"])
+print(f"  (averaged over {n_groups:,} window-steps that have both right and wrong guesses)")
+print(f"  raw confidence                  {base:.4f}")
+for name, (clf, cols) in models.items():
+    a, _ = within_step_auroc(val, clf.predict_proba(val[cols])[:, 1])
+    print(f"  {name:<30}  {a:.4f}   ({a - base:+.4f} vs confidence)")
+
+print("\n  by rollout policy:")
+for pol in ["confidence", "random"]:
+    sub = val[val.policy == pol]
+    c, _ = within_step_auroc(sub, sub["conf"])
+    a, _ = within_step_auroc(sub, clf_all.predict_proba(sub[cols_all])[:, 1])
+    print(f"    {pol:>10} rollouts: confidence {c:.4f}   all features {a:.4f}   ({a - c:+.4f})")
+
 print("\nRead: if 'all features' clearly beats 'confidence only' (say +0.02 AUROC or more),"
-      "\nthe extra features carry signal confidence misses, so the MLP has something to learn.")
+      "\nthe extra features carry signal confidence misses, so the MLP has something to learn."
+      "\nWithin-step AUROC is the stricter test: a gain there means better choice of WHICH tokens"
+      "\nto commit; a gain only in pooled AUROC means better calibration across steps (useful for"
+      "\ndeciding HOW MANY to commit with a threshold).")
