@@ -13,6 +13,7 @@ Run:  python sanity_check.py
 
 import os
 import random
+import re
 
 os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")  # CPU fallback for any op MPS lacks
 
@@ -23,7 +24,7 @@ from transformers import AutoModelForMaskedLM, AutoTokenizer
 MODEL_NAME = "./mdlm-local"   # your locally patched copy (Mac-compatible)
 MASK_ID = 50257          # GPT-2 vocab is 50257 tokens; MDLM adds [MASK] as id 50257
 WINDOW = 256             # tokens of context per example (model was trained on 1024)
-N_EXAMPLES = 20
+N_EXAMPLES = 300
 MASK_RATIO = 0.5
 STEPS = 128             # decoding steps for iterative confidence decoding
 SEED = 0
@@ -56,13 +57,26 @@ def predict(x):
 
 
 # ---------------------------------------------------------------- data
-CACHE = "data/wikitext2_test_ids.pt"
+def wikitext_detokenize(s):
+    """Undo WikiText's word-tokenized formatting so it reads like normal web text."""
+    s = s.replace(" @-@ ", "-").replace(" @,@ ", ",").replace(" @.@ ", ".")   # 1950 @-@ 51 -> 1950-51
+    s = re.sub(r" ('s|'re|'ve|'m|'ll|'d|n't)\b", r"\1", s)                 # Gore 's -> Gore's
+    s = re.sub(r" ([,.:;!?])", r"\1", s)                                    # word , -> word,
+    s = re.sub(r"\( (.*?) \)", r"(\1)", s)                                 # ( c. 275 ) -> (c. 275)
+    s = s.replace("\xa0", " ")                                              # non-breaking spaces
+    s = re.sub(r" +", " ", s)                                                # collapse repeated spaces
+    return s.strip()
+
+
+CACHE = "data/wikitext2_test_ids_clean.pt"     # new name so old uncleaned cache is never reused
 if os.path.exists(CACHE):
     ids = torch.load(CACHE)                       # fast path: tokenized ids saved on disk
 else:
     ds = load_dataset("Salesforce/wikitext", "wikitext-2-raw-v1", split="test")
-    lines = [l for l in ds["text"] if l.strip() and not l.strip().startswith("=")]  # drop blanks + headings
-    ids = tok(" ".join(lines), return_tensors="pt").input_ids[0]
+    raw = [l for l in ds["text"] if l.strip() and not l.strip().startswith("=")]  # drop blanks + headings
+    lines = [wikitext_detokenize(l) for l in raw]
+    print("cleaning example:\n  before:", raw[0].strip()[:150], "\n  after: ", lines[0][:150])
+    ids = tok("\n".join(lines), return_tensors="pt").input_ids[0]
     os.makedirs("data", exist_ok=True)
     torch.save(ids, CACHE)
     print(f"saved {len(ids)} tokens to {CACHE}")
