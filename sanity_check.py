@@ -25,7 +25,7 @@ MASK_ID = 50257          # GPT-2 vocab is 50257 tokens; MDLM adds [MASK] as id 5
 WINDOW = 256             # tokens of context per example (model was trained on 1024)
 N_EXAMPLES = 20
 MASK_RATIO = 0.5
-STEPS = 8                # decoding steps for iterative confidence decoding
+STEPS = 32                # decoding steps for iterative confidence decoding
 SEED = 0
 
 random.seed(SEED)
