@@ -26,6 +26,9 @@ MASK_ID = 50257          # GPT-2 vocab is 50257 tokens; MDLM adds [MASK] as id 5
 WINDOW = 256             # tokens of context per example (model was trained on 1024)
 N_EXAMPLES = 40
 MASK_RATIO = 0.5
+MASKING = "span"         # "span" = contiguous masked runs, "random" = independent per-token coin flips
+MEAN_SPAN = 5            # average span length in tokens (span masking only)
+MARGIN = 16              # first/last MARGIN tokens of each window are never masked (context on both sides)
 STEPS = 128             # decoding steps for iterative confidence decoding
 SEED = 0
 
@@ -92,7 +95,55 @@ else:
 starts = random.sample(range(0, len(ids) - WINDOW), N_EXAMPLES)
 targets = torch.stack([ids[s:s + WINDOW] for s in starts]).to(device)   # [N, WINDOW]
 
-mask = torch.rand(targets.shape, device=device) < MASK_RATIO
+def random_mask(n, length):
+    """Each token in the maskable middle region is masked independently with prob MASK_RATIO."""
+    m = torch.rand(n, length) < MASK_RATIO
+    m[:, :MARGIN] = False
+    m[:, length - MARGIN:] = False
+    return m
+
+
+def span_mask(n, length):
+    """Mask contiguous spans (lengths ~ Poisson(MEAN_SPAN), min 1) inside the middle region
+    until exactly MASK_RATIO of the maskable tokens are masked."""
+    lo, hi = MARGIN, length - MARGIN            # maskable region is [lo, hi)
+    region = hi - lo
+    target = int(MASK_RATIO * region)
+    m = torch.zeros(n, length, dtype=torch.bool)
+    for b in range(n):
+        while m[b].sum() < target:
+            L = max(1, int(torch.poisson(torch.tensor(float(MEAN_SPAN))).item()))
+            L = min(L, region)
+            start = random.randint(lo, hi - L)
+            m[b, start:start + L] = True
+        idx = m[b].nonzero().flatten()           # trim overshoot so every window has exactly `target` masks
+        m[b, idx[target:]] = False
+    return m
+
+
+def run_lengths(m):
+    """Lengths of consecutive masked runs (for reporting)."""
+    out = []
+    for row in m.tolist():
+        run = 0
+        for v in row + [False]:
+            if v:
+                run += 1
+            elif run:
+                out.append(run)
+                run = 0
+    return out
+
+
+if MASKING == "span":
+    mask = span_mask(*targets.shape).to(device)
+elif MASKING == "random":
+    mask = random_mask(*targets.shape).to(device)
+else:
+    raise ValueError(f"unknown MASKING: {MASKING}")
+runs = run_lengths(mask.cpu())
+print(f"masking: {MASKING}  (ratio {MASK_RATIO}, margin {MARGIN})  "
+      f"mean masked run = {sum(runs) / len(runs):.1f} tokens, longest = {max(runs)}")
 x_masked = targets.clone()
 x_masked[mask] = MASK_ID
 print(f"masked tokens: {mask.sum().item()} across {N_EXAMPLES} windows of {WINDOW}")
@@ -139,7 +190,7 @@ print(f"oracle decoding ({STEPS} steps):      {oracle_acc:.3f}   <- upper bound 
 
 # ---------------------------------------------------------------- eyeball a few examples
 N_SHOW = 30           # how many examples to print
-show = slice(0, 80)      # first 80 tokens of each
+show = slice(0, 96)      # first 96 tokens of each (includes the unmasked margin)
 for b in range(min(N_SHOW, x.shape[0])):
     print(f"\n================ example {b} ================")
     print("--- masked ---")
