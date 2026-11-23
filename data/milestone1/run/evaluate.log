@@ -1,0 +1,63 @@
+device: mps
+W1122 23:29:57.915000 22399 .venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 5197.80it/s]
+seed=0, validation_sample_seed=1, steps=32, gap=[96,160), chunk=8, train=64, tune=16, evaluation=24
+Using the latest cached version of the dataset since Salesforce/wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'wikitext-2-raw-v1' at /Users/tobythurston/.cache/huggingface/datasets/Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Sun Nov 22 23:19:26 2026).
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (232464 > 1024). Running this sequence through the model will result in indexing errors
+validation: 3760 source rows, 232464 cleaned tokens, ids SHA256 f0fba9529df89b359e71897c4c12009b0a4e4a58c56d7fb630bc500894959cdb
+[transformers] `use_return_dict` is deprecated! Use `return_dict` instead!
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:404: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=self.precision):
+/Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/.venv/lib/python3.12/site-packages/torch/cuda/amp/autocast_mode.py:54: UserWarning: CUDA is not available or torch_xla is imported. Disabling autocast.
+  super().__init__(
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:296: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+Decoding confidence on 24 validation windows
+Decoding edges on 24 validation windows
+Decoding lr on 24 validation windows
+Decoding mlp on 24 validation windows
+Decoding oracle on 24 validation windows
+{
+  "dataset": "Salesforce/wikitext",
+  "config": "wikitext-2-raw-v1",
+  "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+  "split": "validation",
+  "device": "mps",
+  "seed": 0,
+  "validation_sampling_seed": 1,
+  "passages": 24,
+  "window_tokens": 256,
+  "gap_start_zero_based": 96,
+  "gap_tokens": 64,
+  "masked_tokens": 1536,
+  "passes_per_passage": {
+    "one_shot": 1,
+    "confidence": 32,
+    "edges": 32,
+    "lr": 32,
+    "mlp": 32,
+    "oracle": 32
+  },
+  "iterative_commits_per_pass": 2,
+  "accuracy": {
+    "one_shot": 0.08268229166666667,
+    "confidence": 0.041015625,
+    "edges": 0.040364583333333336,
+    "lr": 0.04296875,
+    "mlp": 0.048177083333333336,
+    "oracle": 0.208984375
+  },
+  "correct_tokens": {
+    "one_shot": 127,
+    "confidence": 63,
+    "edges": 62,
+    "lr": 66,
+    "mlp": 74,
+    "oracle": 321
+  },
+  "mlp_minus_confidence_pp": 0.7161458333333334,
+  "mlp_minus_lr_pp": 0.5208333333333334
+}

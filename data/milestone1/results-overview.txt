@@ -1,0 +1,20 @@
+WikiText-2 raw, cleaned. Masked-token exact-match accuracy (%) is aggregated over the originally masked positions. All windows have 256 tokens. Split and sample seeds refer to evaluation. The one-shot column uses one forward pass. Every other column uses the same 32 passes and commit quotas within each row.
+
+Run and evaluation mask                              Split       Window seed   Passages   Masked tokens    One-shot  Conf.  Edges   LR     MLP64  MLP128  Greedy oracle   MLP minus conf. (percentage points)
+Historical notebook, 50% random token masking        test        0                  40          5,151       40.8     40.4    --     --      --      --       51.4        --
+Historical notebook, multiple spans, mean 7.6*       test        0                 300         33,600       19.9     17.4   17.4   17.8    18.2     --       32.8        +0.8 (64)
+Local pilot, single central 64-token gap             validation  1                  24          1,536        8.27     4.10   4.04   4.30    4.82    --       20.90       +0.72 (64)
+Local transfer pilot, full sentence, 32–62 tokens    validation  43                 48          1,937        7.90     4.80   5.16   5.52    4.49    --       16.68       −0.31 (64)
+Fresh, full sentence, 32–61, gap-trained scorers     validation  53                 48          1,991        8.69     3.92   3.97   5.12    3.97    --       19.84       +0.05 (64)
+Fresh, same sentences, sentence-trained scorers      validation  53                 48          1,991        8.69     3.92   3.97   5.42    4.57    5.22     19.84       +0.65 (64), +1.31 (128)
+
+*Longest run was 44 tokens. Multiple spans per window, 112 total masked positions per window. The answer-key policy fills its quota with incorrect guesses when needed. It is a diagnostic.
+Historical measurements come from the team notebook; their published precision is one decimal. The 40-window discrepancy with PROJECT_CONTEXT.md is documented in historical-evidence.txt. The transfer pilot uses the same scorers as the central-gap pilot. The final two rows reuse every evaluation example, seed and prediction from the same run except for the learned policies being compared. The 64/128 labels denote width per hidden layer. Model-fitting seed was 0 for the fresh scorers. Unrounded counts and paired article bootstrap intervals for the latest run are in matched/results.json and matched/audit.json.
+
+Within-step tuning AUROC (confidence, LR, MLP64, MLP128 if trained):
+  Historical multi-span validation: 0.6895, 0.7452, 0.7592.
+  Fixed 64-token gap validation: 0.5443, 0.5997, 0.6158.
+  Whole-sentence validation, 16 tuning windows: 0.5749, 0.6567, 0.6663, 0.6820.
+These scores rank candidate guesses within a decoding step. The table above scores the final output.
+
+The archive's paths start at the Git repository root. Start with matched/reproduce.txt inside data/milestone1 for the newest pilot. The original setup commands are in data/milestone1/reproduce.txt. For a rerun, follow the specified selective copy into a fresh checkout to keep archived outputs separate.

@@ -1,0 +1,9 @@
+Independently recounted exact token-ID matches from predictions.json.
+All six per-policy totals and fractions agree with results.json.
+All 24 decoding windows match windows.json and are disjoint from the 16 validation windows used for epoch selection and AUROC.
+All 64 target and predicted token IDs are present for every gap and method. No prediction contains the mask token.
+All iterative passes assert the same mask counts and two commits per window for 32 passes.
+The train Parquet has 135,168 rows from 64 train windows and the validation Parquet has 33,792 rows from 16 validation windows. Both contain confidence and random rollouts, the expected 32-step per-window mask counts and the 17 shared features.
+The two checkpoints load with the repository's ordered feature list.
+MLP versus confidence has 13 window wins, 4 ties, and 7 losses.
+MLP versus logistic regression has 13 window wins, 5 ties, and 6 losses.

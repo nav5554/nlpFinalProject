@@ -1,0 +1,28 @@
+Sentence-trained policy and ranker size experiment
+
+Base Git checkout: 1475d644793f0492624d8c916cbab0fe0a5c639c
+Run from the repository root using the same local .venv and mdlm-local weights as the baseline pilot. Data/model/environment provenance is in run/provenance.txt. The experiment uses WikiText-2 raw revision b08601e04326c79dfdd32d625aee71d232d685c3. Selection seed is 53, training seed is 0, and the generation backend is MPS on the recorded run.
+
+To replay without overwriting the archived evidence, use a new checkout at the SHA above. Set up the model and dependencies according to the original pilot's reproduce.txt. From the evidence packet copy these files and preserve paths beneath the checkout:
+
+  data/milestone1/run/windows.json
+  data/milestone1/run/policies/lr.pt
+  data/milestone1/run/policies/mlp.pt
+  data/milestone1/sentence/sample.json
+  data/milestone1/matched/experiment.py
+  data/milestone1/matched/run.sh
+  data/milestone1/matched/check.py
+
+Install the sentence splitter alongside the original environment. In a fresh cache, download WikiText-2 and the GPT-2 tokenizer before running offline:
+
+  mkdir -p data/milestone1/sentence
+  sp="$PWD/data/milestone1/sentence"
+  uv pip install --python .venv/bin/python --target "$sp/deps" nltk==3.10.4
+  NLTK_DATA="$sp/nltk_data" PYTHONPATH="$sp/deps" .venv/bin/python -c "import os,nltk; assert nltk.download('punkt_tab',download_dir=os.environ['NLTK_DATA'],quiet=True)"
+  .venv/bin/python -c "from datasets import load_dataset; load_dataset('Salesforce/wikitext','wikitext-2-raw-v1',revision='b08601e04326c79dfdd32d625aee71d232d685c3')"
+  .venv/bin/python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('gpt2',revision='607a30d783dfa663caf39e06633721c8d4cfcd7e')"
+  .venv/bin/python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('gpt2')"
+  bash data/milestone1/matched/run.sh > data/milestone1/matched/experiment.log 2>&1
+  .venv/bin/python data/milestone1/matched/check.py
+
+The launcher first reserves the evaluation sample, then collects sentence trajectories, fits the repository's original scorers, repeats MLP training at width 128, and evaluates all policies. A different hardware or software stack may produce different predictions from the recorded MPS run. Comparisons resample whole articles 10,000 times. Reference-containing-letter-or-digit metrics in audit.json use Python's Unicode isalnum on individual GPT-2 token decodes.

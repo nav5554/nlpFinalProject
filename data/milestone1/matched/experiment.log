@@ -1,0 +1,242 @@
+device: mps
+W1122 23:46:38.889000 24320 .venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 18468.42it/s]
+Using the latest cached version of the dataset since Salesforce/wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'wikitext-2-raw-v1' at /Users/tobythurston/.cache/huggingface/datasets/Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Sun Nov 22 23:19:26 2026).
+validation IDs SHA-256: f0fba9529df89b359e71897c4c12009b0a4e4a58c56d7fb630bc500894959cdb
+evaluation validation windows 48 articles 17 eligible candidates 219
+device: mps
+W1122 23:46:44.121000 24339 .venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 23244.51it/s]
+Using the latest cached version of the dataset since Salesforce/wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'wikitext-2-raw-v1' at /Users/tobythurston/.cache/huggingface/datasets/Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Sun Nov 22 23:19:26 2026).
+train IDs SHA-256: 69b9cf7934eaed6d3ea1106d9cd8834e3fbab2ae0aec34bf6ef0891a7b7b6df0
+training train windows 64 articles 64 eligible candidates 13303
+Collecting train confidence
+[transformers] `use_return_dict` is deprecated! Use `return_dict` instead!
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:404: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=self.precision):
+/Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/.venv/lib/python3.12/site-packages/torch/cuda/amp/autocast_mode.py:54: UserWarning: CUDA is not available or torch_xla is imported. Disabling autocast.
+  super().__init__(
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:296: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+Collecting train random
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:404: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=self.precision):
+/Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/.venv/lib/python3.12/site-packages/torch/cuda/amp/autocast_mode.py:54: UserWarning: CUDA is not available or torch_xla is imported. Disabling autocast.
+  super().__init__(
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:296: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+train rows 80236
+Using the latest cached version of the dataset since Salesforce/wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'wikitext-2-raw-v1' at /Users/tobythurston/.cache/huggingface/datasets/Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Sun Nov 22 23:19:26 2026).
+validation IDs SHA-256: f0fba9529df89b359e71897c4c12009b0a4e4a58c56d7fb630bc500894959cdb
+tuning validation windows 16 articles 16 eligible candidates 1142
+Collecting validation confidence
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:404: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=self.precision):
+/Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/.venv/lib/python3.12/site-packages/torch/cuda/amp/autocast_mode.py:54: UserWarning: CUDA is not available or torch_xla is imported. Disabling autocast.
+  super().__init__(
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:296: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+Collecting validation random
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:404: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=self.precision):
+/Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/.venv/lib/python3.12/site-packages/torch/cuda/amp/autocast_mode.py:54: UserWarning: CUDA is not available or torch_xla is imported. Disabling autocast.
+  super().__init__(
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:296: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+validation rows 19466
+device: mps
+train rows: 80,236   val rows: 19,466
+
+[logistic regression]
+  saved policies/lr.pt
+
+[MLP]
+  epoch 1: train loss 0.5999   val pooled AUROC 0.4910
+  epoch 2: train loss 0.3087   val pooled AUROC 0.5017
+  epoch 3: train loss 0.2083   val pooled AUROC 0.5839
+  epoch 4: train loss 0.1928   val pooled AUROC 0.6471
+  epoch 5: train loss 0.1843   val pooled AUROC 0.6750
+  epoch 6: train loss 0.1799   val pooled AUROC 0.6920
+  epoch 7: train loss 0.1769   val pooled AUROC 0.7005
+  epoch 8: train loss 0.1749   val pooled AUROC 0.7079
+  saved policies/mlp.pt (best val pooled AUROC 0.7079)
+
+=== validation AUROC ===
+  raw confidence         pooled AUROC 0.4723   within-step AUROC 0.5749
+  logistic regression    pooled AUROC 0.7046   within-step AUROC 0.6567
+  MLP                    pooled AUROC 0.7079   within-step AUROC 0.6663
+
+Next: python sanity_check.py  (decodes the test split with the 'lr' and 'mlp' policies)
+device: mps
+train rows: 80,236   val rows: 19,466
+
+[logistic regression]
+  saved policies/lr.pt
+
+[MLP]
+  epoch 1: train loss 0.3473   val pooled AUROC 0.5350
+  epoch 2: train loss 0.2005   val pooled AUROC 0.6354
+  epoch 3: train loss 0.1837   val pooled AUROC 0.6832
+  epoch 4: train loss 0.1777   val pooled AUROC 0.6941
+  epoch 5: train loss 0.1739   val pooled AUROC 0.7084
+  epoch 6: train loss 0.1714   val pooled AUROC 0.7142
+  epoch 7: train loss 0.1696   val pooled AUROC 0.7127
+  epoch 8: train loss 0.1685   val pooled AUROC 0.7214
+  saved policies/mlp.pt (best val pooled AUROC 0.7214)
+
+=== validation AUROC ===
+  raw confidence         pooled AUROC 0.4723   within-step AUROC 0.5749
+  logistic regression    pooled AUROC 0.7046   within-step AUROC 0.6567
+  MLP                    pooled AUROC 0.7214   within-step AUROC 0.6820
+
+Next: python sanity_check.py  (decodes the test split with the 'lr' and 'mlp' policies)
+device: mps
+W1122 23:49:18.468000 24731 .venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 6958.81it/s]
+Using the latest cached version of the dataset since Salesforce/wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'wikitext-2-raw-v1' at /Users/tobythurston/.cache/huggingface/datasets/Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Sun Nov 22 23:19:26 2026).
+validation IDs SHA-256: f0fba9529df89b359e71897c4c12009b0a4e4a58c56d7fb630bc500894959cdb
+evaluation validation windows 48 articles 17 eligible candidates 219
+[transformers] `use_return_dict` is deprecated! Use `return_dict` instead!
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:404: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=self.precision):
+/Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/.venv/lib/python3.12/site-packages/torch/cuda/amp/autocast_mode.py:54: UserWarning: CUDA is not available or torch_xla is imported. Disabling autocast.
+  super().__init__(
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+/Users/tobythurston/.cache/huggingface/modules/transformers_modules/mdlm_hyphen_local/a78efb4d6c39371d/modeling_mdlm_2.py:296: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=False):
+Evaluating confidence
+Evaluating edges
+Evaluating lr
+Evaluating mlp
+Evaluating wide
+Evaluating prior_lr
+Evaluating prior_mlp
+Evaluating oracle
+{
+  "articles": 17,
+  "passages": 48,
+  "masked_tokens": 1991,
+  "hits": {
+    "one_shot": 173,
+    "confidence": 78,
+    "edges": 79,
+    "lr": 108,
+    "mlp": 91,
+    "wide": 104,
+    "prior_lr": 102,
+    "prior_mlp": 79,
+    "oracle": 395
+  },
+  "accuracy": {
+    "one_shot": 0.08689100954294325,
+    "confidence": 0.03917629331993973,
+    "edges": 0.03967855349070819,
+    "lr": 0.05424409844299347,
+    "mlp": 0.045705675539929685,
+    "wide": 0.052235057759919636,
+    "prior_lr": 0.051230537418382724,
+    "prior_mlp": 0.03967855349070819,
+    "oracle": 0.19839276745354092
+  },
+  "comparisons_to_mlp64": {
+    "one_shot": {
+      "delta_pp": -4.118533400301356,
+      "wins": 2,
+      "ties": 9,
+      "losses": 37,
+      "article_bootstrap_95_pp": [
+        -4.997343893667004,
+        -3.2520112039085785
+      ]
+    },
+    "confidence": {
+      "delta_pp": 0.6529382219989954,
+      "wins": 21,
+      "ties": 17,
+      "losses": 10,
+      "article_bootstrap_95_pp": [
+        -0.1678471307010794,
+        1.325131352778031
+      ]
+    },
+    "edges": {
+      "delta_pp": 0.6027122049221497,
+      "wins": 21,
+      "ties": 16,
+      "losses": 11,
+      "article_bootstrap_95_pp": [
+        -0.3331575102337994,
+        1.4668720852146877
+      ]
+    },
+    "lr": {
+      "delta_pp": -0.8538422903063787,
+      "wins": 7,
+      "ties": 24,
+      "losses": 17,
+      "article_bootstrap_95_pp": [
+        -1.8343217268601504,
+        0.04464635579937299
+      ]
+    },
+    "wide": {
+      "delta_pp": -0.6529382219989954,
+      "wins": 13,
+      "ties": 16,
+      "losses": 19,
+      "article_bootstrap_95_pp": [
+        -1.5726827767433031,
+        0.14620061245263324
+      ]
+    },
+    "prior_lr": {
+      "delta_pp": -0.5524861878453039,
+      "wins": 17,
+      "ties": 14,
+      "losses": 17,
+      "article_bootstrap_95_pp": [
+        -1.6494874681866694,
+        0.44053942634149695
+      ]
+    },
+    "prior_mlp": {
+      "delta_pp": 0.6027122049221497,
+      "wins": 19,
+      "ties": 20,
+      "losses": 9,
+      "article_bootstrap_95_pp": [
+        -0.21981974859672698,
+        1.3500493383542629
+      ]
+    },
+    "oracle": {
+      "delta_pp": -15.268709191361125,
+      "wins": 0,
+      "ties": 2,
+      "losses": 46,
+      "article_bootstrap_95_pp": [
+        -17.82848307900591,
+        -12.728982203909881
+      ]
+    }
+  },
+  "initial_topk_hits": {
+    "1": 173,
+    "5": 444,
+    "10": 608
+  },
+  "base_params": 169627218
+}

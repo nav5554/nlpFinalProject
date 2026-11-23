@@ -1,0 +1,67 @@
+{
+  "windows": 48,
+  "articles": 32,
+  "masked_tokens": 1937,
+  "gap_min": 32,
+  "gap_median": 37.5,
+  "gap_max": 62,
+  "seed": 43,
+  "iterative_passes": 32,
+  "one_shot_passes": 1,
+  "correct": {
+    "one_shot": 153,
+    "confidence": 93,
+    "edges": 100,
+    "lr": 107,
+    "mlp": 87,
+    "oracle": 323
+  },
+  "accuracy": {
+    "one_shot": 0.07898812596799173,
+    "confidence": 0.048012390294269486,
+    "edges": 0.05162622612287042,
+    "lr": 0.055240061951471346,
+    "mlp": 0.04491481672689726,
+    "oracle": 0.16675271037687145
+  },
+  "fully_recovered": {
+    "one_shot": 0,
+    "confidence": 0,
+    "edges": 0,
+    "lr": 0,
+    "mlp": 0,
+    "oracle": 0
+  },
+  "comparisons": {
+    "confidence": {
+      "delta_pp": -0.3097573567372225,
+      "wins": 11,
+      "ties": 27,
+      "losses": 10,
+      "article_bootstrap_95_pp": [
+        -1.2952094643477452,
+        0.5370713650485659
+      ]
+    },
+    "lr": {
+      "delta_pp": -1.0325245224574084,
+      "wins": 11,
+      "ties": 21,
+      "losses": 16,
+      "article_bootstrap_95_pp": [
+        -2.0708446866485013,
+        -0.09881422924901186
+      ]
+    },
+    "one_shot": {
+      "delta_pp": -3.4073309241094476,
+      "wins": 4,
+      "ties": 11,
+      "losses": 33,
+      "article_bootstrap_95_pp": [
+        -4.315561559182736,
+        -2.4788797189538845
+      ]
+    }
+  }
+}

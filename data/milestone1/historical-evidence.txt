@@ -1,0 +1,80 @@
+Historical runs from Arnav Sehgal's Untitled4.ipynb
+Collected read-only from the saved notebook and its pinned/recent revisions.
+
+Cleaned WikiText-2 test, preliminary 50% Bernoulli token masking, 32-pass comparison.
+Nov 22, 2026 2:53 PM EST revision, cell 7 output as displayed in Colab.
+https://colab.research.google.com/drive/14z88WfkfqrJ0nidxUCx_BcjfGwkOq6fD#revisionId=0B24qCcbQUz76T1l5THM0ZjB5emZRdDNZZ1ZhOHFmNHRRUkY0PQ
+Cell 1 shows Updating dd350a5..5dbc45d.
+Code SHA 5dbc45d646692bd6d4f4feaec56cea95add5ef1f.
+Code confirms seed 0, random starts (potentially overlapping), test split, 50% independent masking, and quota ceil(remaining / passes left).
+device: cuda
+params: 170M
+masked tokens: 5151 across 40 windows of 256
+one-shot accuracy: 0.408
+confidence decoding (32 steps): 0.404
+oracle decoding (32 steps): 0.514
+
+The saved output with those scores uses 40 windows and 5,151 masks.
+PROJECT_CONTEXT.md lists 300 windows and ~38K masks beside those scores.
+A separate saved 300-window random-mask run used a 128-pass budget:
+https://colab.research.google.com/drive/14z88WfkfqrJ0nidxUCx_BcjfGwkOq6fD#revisionId=0B24qCcbQUz76OHUxUUxxVEIzdzY4MW14cXZ4VXFlQkVqVDE0PQ
+Updating 9b03d36..dd350a5 (dd350a59691fccb2bab3b552f5b2d973da197cce).
+masked tokens: 38423 across 300 windows of 256
+one-shot accuracy: 0.412
+confidence decoding (128 steps): 0.409
+
+Another saved random-mask result (2:55 PM EST, 497e276, 128 passes):
+https://colab.research.google.com/drive/14z88WfkfqrJ0nidxUCx_BcjfGwkOq6fD#revisionId=0B24qCcbQUz76VlcrRlRTOW51WGZpMmxxb3B4K09TZEEvUDRVPQ
+masked tokens: 5151 across 40 windows of 256
+one-shot accuracy: 0.408
+confidence decoding (128 steps): 0.401
+oracle decoding (128 steps): 0.517
+
+Existing multi-span experiments from the latest notebook export team-colab.ipynb.
+https://colab.research.google.com/drive/14z88WfkfqrJ0nidxUCx_BcjfGwkOq6fD
+Latest checkout shown in cell 2: 1475d644793f0492624d8c916cbab0fe0a5c639c.
+Cell 7 has older saved 128-step output; exact checkout for that cell was not logged.
+Evaluation split is test per sanity_check.py. The saved train/validation caches were produced by collect_rows.py, which uses explicit split-specific filenames. The notebook confirms that both scorer checkpoints were written in that Colab runtime. Only saved outputs were accessible during this task.
+
+Cell 7 — older multi-span test output
+device: cuda
+masking: span  (ratio 0.5, margin 16)  mean masked run = 7.6 tokens, longest = 43
+masked tokens: 33600 across 300 windows of 256
+one-shot accuracy:                 0.201
+confidence decoding (128 steps):  0.175
+edges-first decoding (128 steps): 0.173   <- heuristic: fill spans from the edges inward
+oracle decoding (128 steps):      0.336   <- upper bound for any commit policy
+
+Cell 9 — multi-span row collection
+device: cuda
+saved 2248922 tokens to data/wikitext2_train_ids_clean.pt
+[train] 300 windows, 33600 masked tokens
+confidence rollout: final accuracy 0.174, 516,000 rows, label rate 0.102
+random rollout: final accuracy 0.155, 516,000 rows, label rate 0.162
+saved 1,032,000 rows to data/rows_train.parquet
+saved 232464 tokens to data/wikitext2_validation_ids_clean.pt
+[validation] 100 windows, 11200 masked tokens
+confidence rollout: final accuracy 0.157, 172,000 rows, label rate 0.096
+random rollout: final accuracy 0.145, 172,000 rows, label rate 0.151
+saved 344,000 rows to data/rows_validation.parquet
+
+Cell 11 — multi-span scorer training and within-step validation AUROC
+device: cuda
+train rows: 1,032,000   val rows: 344,000
+saved policies/lr.pt
+saved policies/mlp.pt (best val pooled AUROC 0.7919)
+raw confidence         pooled AUROC 0.7199   within-step AUROC 0.6895
+logistic regression    pooled AUROC 0.7767   within-step AUROC 0.7452
+MLP                    pooled AUROC 0.7919   within-step AUROC 0.7592
+
+Cell 12 — 32-pass multi-span test evaluation
+device: cuda
+learned policies loaded: ['lr', 'mlp']
+masking: span  (ratio 0.5, margin 16)  mean masked run = 7.6 tokens, longest = 44
+masked tokens: 33600 across 300 windows of 256
+one-shot accuracy:                 0.199
+confidence decoding (32 steps):  0.174
+edges-first decoding (32 steps): 0.174   <- heuristic: fill spans from the edges inward
+lr decoding          (32 steps): 0.178   <- learned policy
+mlp decoding         (32 steps): 0.182   <- learned policy
+oracle decoding (32 steps):      0.328   <- upper bound for any commit policy

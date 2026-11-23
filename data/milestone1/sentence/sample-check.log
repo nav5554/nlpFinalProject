@@ -1,0 +1,10 @@
+device: mps
+W1122 23:34:58.366000 23068 .venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 6464.39it/s]
+Seed: 43 dataset revision: b08601e04326c79dfdd32d625aee71d232d685c3 Punkt NLTK version: 3.10.4
+lr ec35499781fab1227822b5bc3529769d9e482af443629189da0c71f3e290a319
+mlp 54fed4d990ec9da3a328dc5dc88e80d43750567c47692be47f506105807636c1
+Using the latest cached version of the dataset since Salesforce/wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'wikitext-2-raw-v1' at /Users/tobythurston/.cache/huggingface/datasets/Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Sun Nov 22 23:19:26 2026).
+Validation IDs SHA-256: f0fba9529df89b359e71897c4c12009b0a4e4a58c56d7fb630bc500894959cdb
+1241 candidates, 48 sampled from 32 articles

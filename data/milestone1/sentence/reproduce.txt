@@ -1,0 +1,15 @@
+Whole-sentence follow-up
+Base checkout: nav5554/nlpFinalProject at 1475d644793f0492624d8c916cbab0fe0a5c639c.
+Run from the repository root with the same Python/model environment as the original pilot.
+This run reads the original pilot's run/windows.json and run/policies/{lr,mlp}.pt.
+It retains the same checkpoints and holds out all original pilot validation windows.
+The primary comparison is learned MLP versus confidence-first with 32 passes per passage.
+Secondary comparisons are logistic regression and one-shot. The paired uncertainty estimate resamples entire WikiText articles 10,000 times. All scores are masked-token exact match.
+
+    sentence_dir="$PWD/data/milestone1/sentence"
+    uv pip install --python .venv/bin/python --target "$sentence_dir/deps" nltk==3.10.4
+    PYTHONPATH="$sentence_dir/deps" .venv/bin/python -c "import nltk; assert nltk.download('punkt_tab', download_dir='data/milestone1/sentence/nltk_data', quiet=True)"
+    HF_HUB_OFFLINE=1 NLTK_DATA="$sentence_dir/nltk_data" PYTHONPATH="$PWD:$sentence_dir/deps" .venv/bin/python -u "$sentence_dir/run_sentences.py" 2>&1 | tee "$sentence_dir/decode.log"
+
+The offline flag requires the original Hugging Face caches. Remove it for a fresh cache.
+The seeded sample is selected before decoding. Each gap is a full Punkt-delimited middle sentence of 32–64 GPT-2 tokens whose decoded token span matches the segmented source text modulo boundary whitespace. It is independently centered in a same-article 256-token window, with one or two nonoverlapping windows per article. This tests transfer from matched-length synthetic gap training to complete, naturally bounded sentences.

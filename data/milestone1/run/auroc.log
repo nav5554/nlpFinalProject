@@ -1,0 +1,76 @@
+train rows: 135,168  (label rate 0.041)
+val rows:   33,792  (label rate 0.042)
+
+=== AUROC on validation (higher = better at telling right guesses from wrong) ===
+  raw confidence (no model)       0.5126
+  confidence only                 0.5126
+  + margin, entropy               0.5334
+  + stability                     0.5947
+  + span structure                0.6041
+  all features                    0.6780
+
+=== single-feature AUROC on validation (0.5 = no signal; direction ignored) ===
+  step_frac          0.5988   (higher=more likely wrong)
+  frac_masked        0.5988   (higher=more likely correct)
+  conf_minus_mean    0.5744   (higher=more likely correct)
+  steps_stable       0.5596   (higher=more likely correct)
+  run_len            0.5589   (higher=more likely correct)
+  conf_rank          0.5565   (higher=more likely correct)
+  flipped            0.5441   (higher=more likely wrong)
+  right_conf         0.5422   (higher=more likely wrong)
+  left_conf          0.5399   (higher=more likely wrong)
+  dist_known         0.5355   (higher=more likely correct)
+  left_masked        0.5292   (higher=more likely correct)
+  margin             0.5234   (higher=more likely correct)
+  first_step         0.5218   (higher=more likely correct)
+  dconf              0.5199   (higher=more likely wrong)
+  entropy            0.5128   (higher=more likely correct)
+  conf               0.5126   (higher=more likely correct)
+  right_masked       0.5117   (higher=more likely correct)
+
+=== confidence-only vs all-features AUROC by situation (validation) ===
+  edge of span (dist_known == 1)     n=  11,394  conf 0.6504  all 0.8111
+  inside span (dist_known >= 2)      n=  22,398  conf 0.4794  all 0.5869
+  deep inside (dist_known >= 4)      n=  16,213  conf 0.4894  all 0.5617
+  confidence rollouts                n=  16,896  conf 0.4313  all 0.6209
+  random rollouts                    n=  16,896  conf 0.5709  all 0.7211
+  early steps (step_frac < 0.5)      n=  25,088  conf 0.5523  all 0.6456
+  late steps (step_frac >= 0.5)      n=   8,704  conf 0.5384  all 0.6988
+
+=== all-features logistic regression coefficients (standardized; sign = direction) ===
+  entropy            -0.664
+  steps_stable       +0.524
+  step_frac          -0.394
+  frac_masked        +0.394
+  left_conf          -0.350
+  margin             -0.349
+  conf_minus_mean    +0.337
+  dconf              -0.251
+  dist_known         -0.199
+  right_conf         -0.170
+  conf               +0.150
+  right_masked       +0.105
+  left_masked        -0.077
+  first_step         +0.071
+  run_len            +0.045
+  flipped            +0.029
+  conf_rank          +0.006
+
+=== WITHIN-STEP AUROC on validation (what top-k commitment actually depends on) ===
+  (averaged over 587 window-steps that have both right and wrong guesses)
+  raw confidence                  0.5443
+  confidence only                 0.5443   (+0.0000 vs confidence)
+  + margin, entropy               0.5522   (+0.0079 vs confidence)
+  + stability                     0.6027   (+0.0585 vs confidence)
+  + span structure                0.5825   (+0.0382 vs confidence)
+  all features                    0.5997   (+0.0554 vs confidence)
+
+  by rollout policy:
+    confidence rollouts: confidence 0.4272   all features 0.4961   (+0.0689)
+        random rollouts: confidence 0.6360   all features 0.6809   (+0.0448)
+
+Read: if 'all features' clearly beats 'confidence only' (say +0.02 AUROC or more),
+the extra features carry signal confidence misses, so the MLP has something to learn.
+Within-step AUROC is the stricter test: a gain there means better choice of WHICH tokens
+to commit; a gain only in pooled AUROC means better calibration across steps (useful for
+deciding HOW MANY to commit with a threshold).

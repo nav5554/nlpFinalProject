@@ -1,0 +1,125 @@
+{
+  "checked_totals": {
+    "one_shot": 173,
+    "confidence": 78,
+    "edges": 79,
+    "lr": 108,
+    "mlp": 91,
+    "wide": 104,
+    "prior_lr": 102,
+    "prior_mlp": 79,
+    "oracle": 395
+  },
+  "reference_token_types": {
+    "contains_letter_or_digit": 1743,
+    "other": 248
+  },
+  "correct_by_type": {
+    "contains_letter_or_digit": {
+      "one_shot": 102,
+      "confidence": 31,
+      "edges": 32,
+      "lr": 54,
+      "mlp": 33,
+      "wide": 48,
+      "prior_lr": 50,
+      "prior_mlp": 31,
+      "oracle": 281
+    },
+    "other": {
+      "one_shot": 71,
+      "confidence": 47,
+      "edges": 47,
+      "lr": 54,
+      "mlp": 58,
+      "wide": 56,
+      "prior_lr": 52,
+      "prior_mlp": 48,
+      "oracle": 114
+    }
+  },
+  "ranker_parameters": {
+    "width64": 5377,
+    "width128": 18945
+  },
+  "examples": [
+    {
+      "row": 567,
+      "offset": 5,
+      "token": " shelters",
+      "reference": " 980 temporary shelters were opened",
+      "confidence": ", 36 shelters were opened",
+      "mlp": " northern Mexico, 36 counties",
+      "mlp_hit": false
+    },
+    {
+      "row": 611,
+      "offset": 54,
+      "token": " the",
+      "reference": " centered around the subject of",
+      "confidence": " Heart \" (1988)",
+      "mlp": ", and the bass the",
+      "mlp_hit": true
+    },
+    {
+      "row": 632,
+      "offset": 14,
+      "token": " the",
+      "reference": " took off the kaft",
+      "confidence": " dancers in a giant cage",
+      "mlp": " song in the background and",
+      "mlp_hit": true
+    }
+  ],
+  "paired_differences_pp": {
+    "mlp minus confidence": {
+      "estimate": 0.6529382219989954,
+      "ci95": [
+        -0.1678471307010794,
+        1.325131352778031
+      ]
+    },
+    "mlp minus lr": {
+      "estimate": -0.8538422903063787,
+      "ci95": [
+        -1.8343217268601504,
+        0.04464635579937299
+      ]
+    },
+    "wide minus mlp": {
+      "estimate": 0.6529382219989954,
+      "ci95": [
+        -0.14620061245263327,
+        1.572682776743303
+      ]
+    },
+    "wide minus confidence": {
+      "estimate": 1.3058764439979909,
+      "ci95": [
+        0.6078950405909738,
+        2.0934388877780488
+      ]
+    },
+    "wide minus lr": {
+      "estimate": -0.20090406830738322,
+      "ci95": [
+        -1.1073830650162644,
+        0.6589537340052037
+      ]
+    },
+    "mlp minus prior_mlp": {
+      "estimate": 0.6027122049221497,
+      "ci95": [
+        -0.21981974859672698,
+        1.3500493383542629
+      ]
+    },
+    "lr minus prior_lr": {
+      "estimate": 0.30135610246107486,
+      "ci95": [
+        -0.9878827221079423,
+        1.4457144651835372
+      ]
+    }
+  }
+}

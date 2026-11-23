@@ -7,6 +7,26 @@ predicted tokens at once, and whether a lightweight learned policy (a small MLP
 using confidence, stability, and span-structure features) can make better
 commit decisions than standard confidence-based decoding.
 
+## Milestone 1
+
+**Research question.** When a frozen masked diffusion language model fills in a
+whole missing sentence, does using a small neural network to choose which token
+guesses to commit first improve masked-token accuracy over confidence-first
+decoding at the same number of decoding steps?
+
+On 48 held-out WikiText-2 validation sentences from 17 articles, confidence-first
+recovered 78 of 1,991 masked tokens. With the same frozen model, starting masks,
+and 32 passes, the sentence-trained MLP with two 128-unit hidden layers recovered
+104 (5.22% vs. 3.92%). The paired 95% article-bootstrap interval for the gain was
++0.61 to +2.09 percentage points. Logistic regression recovered 108 tokens, and
+one-shot decoding recovered 173. This pilot used one training seed.
+
+- [Editable milestone draft](data/milestone1/matched/NLP%20Milestone%201.docx)
+- [Results across all masking settings](data/milestone1/results-overview.txt) and [historical notebook evidence](data/milestone1/historical-evidence.txt)
+- [Sentence pilot results](data/milestone1/matched/results.json), [predictions](data/milestone1/matched/predictions.json), and [paired comparisons](data/milestone1/matched/audit.json)
+- [Exact reproduction commands for the sentence pilot](data/milestone1/matched/reproduce.txt) and [base environment setup](data/milestone1/reproduce.txt)
+- [Download the complete milestone evidence packet](data/milestone1/Milestone%201%20complete%20evidence.zip)
+
 ## Setup
 
 Works on Apple Silicon (MPS), NVIDIA GPUs (CUDA, e.g. Colab/GCP), or CPU.

@@ -1,0 +1,41 @@
+{
+  "dataset": "Salesforce/wikitext",
+  "config": "wikitext-2-raw-v1",
+  "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+  "split": "validation",
+  "device": "mps",
+  "seed": 0,
+  "validation_sampling_seed": 1,
+  "passages": 24,
+  "window_tokens": 256,
+  "gap_start_zero_based": 96,
+  "gap_tokens": 64,
+  "masked_tokens": 1536,
+  "passes_per_passage": {
+    "one_shot": 1,
+    "confidence": 32,
+    "edges": 32,
+    "lr": 32,
+    "mlp": 32,
+    "oracle": 32
+  },
+  "iterative_commits_per_pass": 2,
+  "accuracy": {
+    "one_shot": 0.08268229166666667,
+    "confidence": 0.041015625,
+    "edges": 0.040364583333333336,
+    "lr": 0.04296875,
+    "mlp": 0.048177083333333336,
+    "oracle": 0.208984375
+  },
+  "correct_tokens": {
+    "one_shot": 127,
+    "confidence": 63,
+    "edges": 62,
+    "lr": 66,
+    "mlp": 74,
+    "oracle": 321
+  },
+  "mlp_minus_confidence_pp": 0.7161458333333334,
+  "mlp_minus_lr_pp": 0.5208333333333334
+}

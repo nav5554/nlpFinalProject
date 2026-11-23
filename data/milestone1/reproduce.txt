@@ -1,0 +1,37 @@
+Milestone 1 reproduction commands
+
+The clean source checkout for the fresh pilot was 1475d644793f0492624d8c916cbab0fe0a5c639c.
+The exact command used on the Mac, from that checkout with models and HF caches populated, was:
+
+    HF_HUB_OFFLINE=1 bash data/milestone1/run.sh
+
+The runner uses a new output directory each time. To rerun on this Mac with the existing assets:
+
+    HF_HUB_OFFLINE=1 bash data/milestone1/run.sh data/milestone1/replay
+
+To reproduce from a fresh local checkout, run the following. Copy pilot.py and run.sh from this packet into the new checkout's data/milestone1/ before the last command. The first online run prepares the Hugging Face caches. The model uses CUDA on a CUDA host, MPS on Apple Silicon, and CPU otherwise. Keep the same backend and dependency versions for the closest match to the saved run.
+
+    git clone https://github.com/nav5554/nlpFinalProject.git
+    cd nlpFinalProject
+    git checkout --detach 1475d644793f0492624d8c916cbab0fe0a5c639c
+    uv venv --python 3.12 .venv
+    uv pip install --python .venv/bin/python -r requirements.txt
+    .venv/bin/python -c "from huggingface_hub import hf_hub_download; hf_hub_download('kuleshov-group/mdlm-no_flashattn-fp32-owt', 'model.safetensors', local_dir='mdlm-local', revision='60054720485e8aa080d5d2f3eaebafe1b829afb9')"
+    mkdir -p data/milestone1
+    # Copy pilot.py and run.sh here from the packet.
+    bash data/milestone1/run.sh
+
+The shell runner records dependency versions and the model and script SHA-256 hashes, then runs the pilot collection, upstream AUROC analysis, upstream scorer training, and held-out decoding in that order. It saves all four console logs, passage indices, rows, scorer checkpoints, final token counts and scores, and prediction token IDs. For an existing CUDA/Colab checkout, NLP_PYTHON can point at the runtime's Python executable. The pilot's specific WikiText revision and split token digests are in the logs. The cached GPT-2 tokenizer resolved to revision 607a30d783dfa663caf39e06633721c8d4cfcd7e.
+
+Historical commands in the saved notebook:
+
+    # At 5dbc45d646692bd6d4f4feaec56cea95add5ef1f, with the checkpoint installed:
+    python sanity_check.py
+
+    # At 1475d644793f0492624d8c916cbab0fe0a5c639c, with the checkpoint installed:
+    python collect_rows.py
+    python auroc_check.py
+    python train_policies.py
+    python sanity_check.py
+
+The last historical command evaluates the repository's multi-span setup on the test split. The local pilot runner uses its own validation evaluator and never opens that test-token cache.

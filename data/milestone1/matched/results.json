@@ -1,0 +1,115 @@
+{
+  "articles": 17,
+  "passages": 48,
+  "masked_tokens": 1991,
+  "hits": {
+    "one_shot": 173,
+    "confidence": 78,
+    "edges": 79,
+    "lr": 108,
+    "mlp": 91,
+    "wide": 104,
+    "prior_lr": 102,
+    "prior_mlp": 79,
+    "oracle": 395
+  },
+  "accuracy": {
+    "one_shot": 0.08689100954294325,
+    "confidence": 0.03917629331993973,
+    "edges": 0.03967855349070819,
+    "lr": 0.05424409844299347,
+    "mlp": 0.045705675539929685,
+    "wide": 0.052235057759919636,
+    "prior_lr": 0.051230537418382724,
+    "prior_mlp": 0.03967855349070819,
+    "oracle": 0.19839276745354092
+  },
+  "comparisons_to_mlp64": {
+    "one_shot": {
+      "delta_pp": -4.118533400301356,
+      "wins": 2,
+      "ties": 9,
+      "losses": 37,
+      "article_bootstrap_95_pp": [
+        -4.997343893667004,
+        -3.2520112039085785
+      ]
+    },
+    "confidence": {
+      "delta_pp": 0.6529382219989954,
+      "wins": 21,
+      "ties": 17,
+      "losses": 10,
+      "article_bootstrap_95_pp": [
+        -0.1678471307010794,
+        1.325131352778031
+      ]
+    },
+    "edges": {
+      "delta_pp": 0.6027122049221497,
+      "wins": 21,
+      "ties": 16,
+      "losses": 11,
+      "article_bootstrap_95_pp": [
+        -0.3331575102337994,
+        1.4668720852146877
+      ]
+    },
+    "lr": {
+      "delta_pp": -0.8538422903063787,
+      "wins": 7,
+      "ties": 24,
+      "losses": 17,
+      "article_bootstrap_95_pp": [
+        -1.8343217268601504,
+        0.04464635579937299
+      ]
+    },
+    "wide": {
+      "delta_pp": -0.6529382219989954,
+      "wins": 13,
+      "ties": 16,
+      "losses": 19,
+      "article_bootstrap_95_pp": [
+        -1.5726827767433031,
+        0.14620061245263324
+      ]
+    },
+    "prior_lr": {
+      "delta_pp": -0.5524861878453039,
+      "wins": 17,
+      "ties": 14,
+      "losses": 17,
+      "article_bootstrap_95_pp": [
+        -1.6494874681866694,
+        0.44053942634149695
+      ]
+    },
+    "prior_mlp": {
+      "delta_pp": 0.6027122049221497,
+      "wins": 19,
+      "ties": 20,
+      "losses": 9,
+      "article_bootstrap_95_pp": [
+        -0.21981974859672698,
+        1.3500493383542629
+      ]
+    },
+    "oracle": {
+      "delta_pp": -15.268709191361125,
+      "wins": 0,
+      "ties": 2,
+      "losses": 46,
+      "article_bootstrap_95_pp": [
+        -17.82848307900591,
+        -12.728982203909881
+      ]
+    }
+  },
+  "initial_topk_hits": {
+    "1": 173,
+    "5": 444,
+    "10": 608
+  },
+  "base_params": 169627218
+}

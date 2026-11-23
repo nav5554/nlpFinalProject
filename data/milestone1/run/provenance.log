@@ -1,0 +1,5 @@
+1475d644793f0492624d8c916cbab0fe0a5c639c
+Python 3.12.11
+{'torch': '2.15.0', 'transformers': '5.24.0', 'datasets': '5.2.0', 'huggingface_hub': '2.4.0', 'pandas': '3.1.1', 'pyarrow': '26.0.1', 'scikit-learn': '1.9.1', 'numpy': '2.5.5'}
+47149e73f7552f39ea9776dbe74d925d25237bcf2ed2e2ec03cdff9d51c82aa4  /Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/mdlm-local/model.safetensors
+411932ea26c8435c9c4ade68b91e2c3417229466117f4cad67ac6bc5569214cc  /Users/tobythurston/Documents/ChatGPT/NLP A1/nlpFinalProject/data/milestone1/pilot.py

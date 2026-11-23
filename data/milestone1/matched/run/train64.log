@@ -1,0 +1,23 @@
+device: mps
+train rows: 80,236   val rows: 19,466
+
+[logistic regression]
+  saved policies/lr.pt
+
+[MLP]
+  epoch 1: train loss 0.5999   val pooled AUROC 0.4910
+  epoch 2: train loss 0.3087   val pooled AUROC 0.5017
+  epoch 3: train loss 0.2083   val pooled AUROC 0.5839
+  epoch 4: train loss 0.1928   val pooled AUROC 0.6471
+  epoch 5: train loss 0.1843   val pooled AUROC 0.6750
+  epoch 6: train loss 0.1799   val pooled AUROC 0.6920
+  epoch 7: train loss 0.1769   val pooled AUROC 0.7005
+  epoch 8: train loss 0.1749   val pooled AUROC 0.7079
+  saved policies/mlp.pt (best val pooled AUROC 0.7079)
+
+=== validation AUROC ===
+  raw confidence         pooled AUROC 0.4723   within-step AUROC 0.5749
+  logistic regression    pooled AUROC 0.7046   within-step AUROC 0.6567
+  MLP                    pooled AUROC 0.7079   within-step AUROC 0.6663
+
+Next: python sanity_check.py  (decodes the test split with the 'lr' and 'mlp' policies)
